@@ -17,5 +17,6 @@ defmodule Tadpoll.Voting.Vote do
     vote
     |> cast(attrs, [:selection])
     |> validate_required([:selection])
+    |> unique_constraint(:votes_participant_id_poll_id_index)
   end
 end
