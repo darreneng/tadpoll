@@ -1,0 +1,13 @@
+<h2>Show Poll</h2>
+
+<ul>
+
+  <li>
+    <strong>Question:</strong>
+    <%= @poll.question %>
+  </li>
+
+</ul>
+
+<span><%= link "Edit", to: poll_path(@conn, :edit, @poll) %></span>
+<span><%= link "Back", to: poll_path(@conn, :index) %></span>
