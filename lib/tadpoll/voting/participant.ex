@@ -6,6 +6,7 @@ defmodule Tadpoll.Voting.Participant do
 
   schema "participants" do
     has_many :votes, Vote
+    belongs_to :user, Tadpoll.Accounts.User
 
     timestamps()
   end
