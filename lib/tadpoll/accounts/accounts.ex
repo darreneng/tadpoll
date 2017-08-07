@@ -6,7 +6,7 @@ defmodule Tadpoll.Accounts do
   import Ecto.Query, warn: false
   alias Tadpoll.Repo
 
-  alias Tadpoll.Accounts.User
+  alias Tadpoll.Accounts.{User, Credential}
 
   @doc """
   Returns the list of users.
@@ -18,7 +18,9 @@ defmodule Tadpoll.Accounts do
 
   """
   def list_users do
-    Repo.all(User)
+    User
+    |> Repo.all()
+    |> Repo.preload(:credential)
   end
 
   @doc """
@@ -35,7 +37,11 @@ defmodule Tadpoll.Accounts do
       ** (Ecto.NoResultsError)
 
   """
-  def get_user!(id), do: Repo.get!(User, id)
+  def get_user!(id) do
+    User
+    |> Repo.get!(id)
+    |> Repo.preload(:credential)
+  end
 
   @doc """
   Creates a user.
@@ -52,6 +58,7 @@ defmodule Tadpoll.Accounts do
   def create_user(attrs \\ %{}) do
     %User{}
     |> User.changeset(attrs)
+    |> Ecto.Changeset.cast_assoc(:credential, with: &Credential.changeset/2)
     |> Repo.insert()
   end
 
@@ -70,6 +77,7 @@ defmodule Tadpoll.Accounts do
   def update_user(%User{} = user, attrs) do
     user
     |> User.changeset(attrs)
+    |> Ecto.Changeset.cast_assoc(:credential, with: &Credential.changeset/2)
     |> Repo.update()
   end
 
@@ -101,8 +109,6 @@ defmodule Tadpoll.Accounts do
   def change_user(%User{} = user) do
     User.changeset(user, %{})
   end
-
-  alias Tadpoll.Accounts.Credential
 
   @doc """
   Returns the list of credentials.
@@ -196,5 +202,17 @@ defmodule Tadpoll.Accounts do
   """
   def change_credential(%Credential{} = credential) do
     Credential.changeset(credential, %{})
+  end
+
+  def authenticate_by_email_password(email, _password) do
+    query =
+      from u in User,
+        inner_join: c in assoc(u, :credential),
+        where: c.email == ^email
+
+    case Repo.one(query) do
+      %User{} = user -> {:ok, user}
+      nil -> {:error, :unauthorized}
+    end
   end
 end
