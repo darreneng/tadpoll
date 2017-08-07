@@ -1,11 +1,12 @@
 defmodule Tadpoll.Voting.Participant do
   use Ecto.Schema
   import Ecto.Changeset
-  alias Tadpoll.Voting.{Participant, Vote}
+  alias Tadpoll.Voting.{Participant, Vote, Poll}
 
 
   schema "participants" do
     has_many :votes, Vote
+    has_many :polls, Poll
     belongs_to :user, Tadpoll.Accounts.User
 
     timestamps()
