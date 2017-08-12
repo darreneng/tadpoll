@@ -7,6 +7,10 @@
     <%= @poll.question %>
   </li>
 
+  <li>
+    <strong>Created by:</strong>
+    <%= participant_name(@poll) %>
+  </li>
 </ul>
 
 <span><%= link "Edit", to: poll_path(@conn, :edit, @poll) %></span>

@@ -4,6 +4,9 @@ defmodule TadpollWeb.PollController do
   alias Tadpoll.Voting
   alias Tadpoll.Voting.Poll
 
+  plug :require_existing_participant
+  plug :authorize_poll when action in [:edit, :update, :delete]
+
   def index(conn, _params) do
     polls = Voting.list_polls()
     render(conn, "index.html", polls: polls)
@@ -15,7 +18,7 @@ defmodule TadpollWeb.PollController do
   end
 
   def create(conn, %{"poll" => poll_params}) do
-    case Voting.create_poll(poll_params) do
+    case Voting.create_poll(conn.assigns.current_participant, poll_params) do
       {:ok, poll} ->
         conn
         |> put_flash(:info, "Poll created successfully.")
@@ -36,8 +39,8 @@ defmodule TadpollWeb.PollController do
     render(conn, "edit.html", poll: poll, changeset: changeset)
   end
 
-  def update(conn, %{"id" => id, "poll" => poll_params}) do
-    poll = Voting.get_poll!(id)
+  def update(conn, %{"poll" => poll_params}) do
+    poll = conn.assigns.poll
 
     case Voting.update_poll(poll, poll_params) do
       {:ok, poll} ->
@@ -49,12 +52,29 @@ defmodule TadpollWeb.PollController do
     end
   end
 
-  def delete(conn, %{"id" => id}) do
-    poll = Voting.get_poll!(id)
-    {:ok, _poll} = Voting.delete_poll(poll)
+  def delete(conn, _) do
+    {:ok, _poll} = Voting.delete_poll(conn.assigns.poll)
 
     conn
     |> put_flash(:info, "Poll deleted successfully.")
     |> redirect(to: poll_path(conn, :index))
+  end
+
+  defp require_existing_participant(conn, _) do
+    participant = Voting.ensure_participant_exists(conn.assigns.current_user)
+    assign(conn, :current_participant, participant)
+  end
+
+  defp authorize_poll(conn, _) do
+    poll = Voting.get_poll!(conn.params["id"])
+
+    if conn.assigns.current_participant.id == poll.participant_id do
+      assign(conn, :poll, poll)
+    else
+      conn
+      |> put_flash(:error, "You can't modify that page")
+      |> redirect(to: poll_path(conn, :index))
+      |> halt()
+    end
   end
 end

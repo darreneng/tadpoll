@@ -18,10 +18,15 @@ defmodule TadpollWeb.Router do
 
     get "/", PageController, :index
 
-    resources "/polls", PollController
     resources "/users", UserController
     resources "/sessions", SessionController, only: [:new, :create, :delete],
                                               singleton: true
+  end
+
+  scope "/", TadpollWeb do
+    pipe_through [:browser, :authenticate_user]
+
+    resources "/polls", PollController
   end
 
   defp authenticate_user(conn, _) do

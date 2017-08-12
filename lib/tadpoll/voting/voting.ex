@@ -6,7 +6,8 @@ defmodule Tadpoll.Voting do
   import Ecto.Query, warn: false
   alias Tadpoll.Repo
 
-  alias Tadpoll.Voting.Poll
+  alias Tadpoll.Voting.{Poll, Participant}
+  alias Tadpoll.Accounts
 
   @doc """
   Returns the list of polls.
@@ -18,7 +19,9 @@ defmodule Tadpoll.Voting do
 
   """
   def list_polls do
-    Repo.all(Poll)
+    Poll
+    |> Repo.all()
+    |> Repo.preload(participant: [user: :credential])
   end
 
   @doc """
@@ -35,7 +38,11 @@ defmodule Tadpoll.Voting do
       ** (Ecto.NoResultsError)
 
   """
-  def get_poll!(id), do: Repo.get!(Poll, id)
+  def get_poll!(id) do
+    Poll
+    |> Repo.get!(id)
+    |> Repo.preload(participant: [user: :credential])
+  end
 
   @doc """
   Creates a poll.
@@ -49,10 +56,25 @@ defmodule Tadpoll.Voting do
       {:error, %Ecto.Changeset{}}
 
   """
-  def create_poll(attrs \\ %{}) do
+  def create_poll(%Participant{} = participant, attrs \\ %{}) do
     %Poll{}
     |> Poll.changeset(attrs)
+    |> Ecto.Changeset.put_change(:participant_id, participant.id)
     |> Repo.insert()
+  end
+
+  def ensure_participant_exists(%Accounts.User{} = user) do
+    %Participant{user_id: user.id}
+    |> Ecto.Changeset.change()
+    |> Ecto.Changeset.unique_constraint(:user_id)
+    |> Repo.insert()
+    |> handle_existing_participant()
+  end
+
+  defp handle_existing_participant({:ok, participant}), do: participant
+
+  defp handle_existing_participant({:error, changeset}) do
+    Repo.get_by!(Participant, user_id: changeset.data.user_id)
   end
 
   @doc """
@@ -102,8 +124,6 @@ defmodule Tadpoll.Voting do
     Poll.changeset(poll, %{})
   end
 
-  alias Tadpoll.Voting.Participant
-
   @doc """
   Returns the list of participants.
 
@@ -131,7 +151,11 @@ defmodule Tadpoll.Voting do
       ** (Ecto.NoResultsError)
 
   """
-  def get_participant!(id), do: Repo.get!(Participant, id)
+  def get_participant!(id) do
+    Participant
+    |> Repo.get!(id)
+    |> Repo.preload(user: :credential)
+  end
 
   @doc """
   Creates a participant.
