@@ -1,17 +1,32 @@
-defmodule TadpollWeb.Fixtures do
+defmodule Tadpoll.Fixtures do
   @moduledoc """
   Set of fixtures for TadpollWeb modules
   """
 
   alias Tadpoll.{Voting, Accounts}
 
-  @user_attrs %{name: "some name", username: "some username", credential: %{email: "some@email.com"}}
-  @poll_attrs %{question: "some question"}
+  @doc """
+  Creates a fixture
 
+  ## Examples
+
+      iex> fixture(:user)
+      %User{...}
+
+      iex> fixture(:user, [field: value])
+      %User{field: value, ...}
+
+  """
   def fixture(schema, attrs \\ [])
 
-  def fixture(:user, _) do
-    {:ok, user} = Accounts.create_user(@user_attrs)
+  @user_attrs %{name: "some name", username: "some username", credential: %{email: "some@email.com"}}
+
+  def fixture(:user, attrs) do
+    {:ok, user} =
+      attrs
+      |> Enum.into(@user_attrs)
+      |> Accounts.create_user()
+
     user
   end
 
@@ -20,9 +35,17 @@ defmodule TadpollWeb.Fixtures do
     Voting.ensure_participant_exists(user)
   end
 
+  @poll_attrs %{question: "some question"}
+
   def fixture(:poll, attrs) do
-    participant = attrs[:participant] || fixture(:participant)
-    {:ok, poll} = Voting.create_poll(participant, @poll_attrs)
+    {participant, attrs} =
+      attrs
+      |> Enum.into(@poll_attrs)
+      |> Enum.into(%{})
+      |> Map.pop(:participant)
+
+    participant = participant || fixture(:participant)
+    {:ok, poll} = Voting.create_poll(participant, attrs)
     poll
   end
 end

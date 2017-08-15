@@ -1,7 +1,7 @@
 defmodule TadpollWeb.PollControllerTest do
   use TadpollWeb.ConnCase
 
-  import TadpollWeb.Fixtures
+  import Tadpoll.Fixtures
 
   @create_attrs %{question: "some question"}
   @update_attrs %{question: "some updated question"}

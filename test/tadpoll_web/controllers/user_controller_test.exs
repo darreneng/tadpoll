@@ -1,7 +1,7 @@
 defmodule TadpollWeb.UserControllerTest do
   use TadpollWeb.ConnCase
 
-  import TadpollWeb.Fixtures
+  import Tadpoll.Fixtures
 
   @create_attrs %{name: "some name", username: "some username", credential: %{email: "some@email.com"}}
   @update_attrs %{name: "some updated name", username: "some updated username"}
