@@ -1,16 +1,11 @@
 defmodule TadpollWeb.UserControllerTest do
   use TadpollWeb.ConnCase
 
-  alias Tadpoll.Accounts
+  import TadpollWeb.Fixtures
 
-  @create_attrs %{name: "some name", username: "some username"}
+  @create_attrs %{name: "some name", username: "some username", credential: %{email: "some@email.com"}}
   @update_attrs %{name: "some updated name", username: "some updated username"}
   @invalid_attrs %{name: nil, username: nil}
-
-  def fixture(:user) do
-    {:ok, user} = Accounts.create_user(@create_attrs)
-    user
-  end
 
   describe "index" do
     test "lists all users", %{conn: conn} do

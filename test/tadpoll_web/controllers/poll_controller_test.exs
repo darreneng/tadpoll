@@ -3,23 +3,24 @@ defmodule TadpollWeb.PollControllerTest do
 
   alias Tadpoll.Voting
 
+  import TadpollWeb.Fixtures
+
   @create_attrs %{question: "some question"}
   @update_attrs %{question: "some updated question"}
   @invalid_attrs %{question: nil}
 
-  def fixture(:poll) do
-    {:ok, poll} = Voting.create_poll(@create_attrs)
-    poll
-  end
-
   describe "index" do
+    setup [:logged_in]
+
     test "lists all polls", %{conn: conn} do
-      conn = get conn, poll_path(conn, :index)
+      conn = get conn, poll_path(conn, :index) 
       assert html_response(conn, 200) =~ "Listing Polls"
     end
   end
 
   describe "new poll" do
+    setup [:logged_in]
+
     test "renders form", %{conn: conn} do
       conn = get conn, poll_path(conn, :new)
       assert html_response(conn, 200) =~ "New Poll"
@@ -27,6 +28,8 @@ defmodule TadpollWeb.PollControllerTest do
   end
 
   describe "create poll" do
+    setup [:logged_in]
+
     test "redirects to show when data is valid", %{conn: conn} do
       conn = post conn, poll_path(conn, :create), poll: @create_attrs
 
@@ -44,7 +47,7 @@ defmodule TadpollWeb.PollControllerTest do
   end
 
   describe "edit poll" do
-    setup [:create_poll]
+    setup [:logged_in, :create_poll]
 
     test "renders form for editing chosen poll", %{conn: conn, poll: poll} do
       conn = get conn, poll_path(conn, :edit, poll)
@@ -53,7 +56,7 @@ defmodule TadpollWeb.PollControllerTest do
   end
 
   describe "update poll" do
-    setup [:create_poll]
+    setup [:logged_in, :create_poll]
 
     test "redirects when data is valid", %{conn: conn, poll: poll} do
       conn = put conn, poll_path(conn, :update, poll), poll: @update_attrs
@@ -70,7 +73,7 @@ defmodule TadpollWeb.PollControllerTest do
   end
 
   describe "delete poll" do
-    setup [:create_poll]
+    setup [:logged_in, :create_poll]
 
     test "deletes chosen poll", %{conn: conn, poll: poll} do
       conn = delete conn, poll_path(conn, :delete, poll)
@@ -81,8 +84,16 @@ defmodule TadpollWeb.PollControllerTest do
     end
   end
 
-  defp create_poll(_) do
-    poll = fixture(:poll)
-    {:ok, poll: poll}
+  defp create_poll(context) do
+    user = context[:user] || fixture(:user)
+    poll = fixture(:poll, participant: Voting.ensure_participant_exists(user))
+    %{poll: poll, user: user}
+  end
+
+  defp logged_in(context) do
+    user = context[:user] || fixture(:user)
+    conn = build_conn()
+    |> Plug.Test.init_test_session(user_id: user.id)
+    %{conn: conn, user: user}
   end
 end
