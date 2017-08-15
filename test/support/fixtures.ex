@@ -30,6 +30,12 @@ defmodule Tadpoll.Fixtures do
     user
   end
 
+  @credential_attrs %{email: "some@email.com"}
+
+  def fixture(:credential, _) do
+    fixture(:user).credential
+  end
+
   def fixture(:participant, attrs) do
     user = attrs[:user] || fixture(:user)
     Voting.ensure_participant_exists(user)
