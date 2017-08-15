@@ -1,8 +1,6 @@
 defmodule TadpollWeb.PollControllerTest do
   use TadpollWeb.ConnCase
 
-  alias Tadpoll.Voting
-
   import TadpollWeb.Fixtures
 
   @create_attrs %{question: "some question"}
@@ -86,7 +84,7 @@ defmodule TadpollWeb.PollControllerTest do
 
   defp create_poll(context) do
     user = context[:user] || fixture(:user)
-    poll = fixture(:poll, participant: Voting.ensure_participant_exists(user))
+    poll = fixture(:poll, participant: fixture(:participant, user: user))
     %{poll: poll, user: user}
   end
 
