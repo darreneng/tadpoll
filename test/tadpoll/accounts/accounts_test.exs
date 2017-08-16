@@ -61,7 +61,6 @@ defmodule Tadpoll.AccountsTest do
   describe "credentials" do
     alias Tadpoll.Accounts.Credential
 
-    @valid_attrs %{email: "some email"}
     @update_attrs %{email: "some updated email"}
     @invalid_attrs %{email: nil}
 

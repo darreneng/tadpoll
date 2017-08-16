@@ -61,6 +61,12 @@ defmodule Tadpoll.Voting do
     |> Poll.changeset(attrs)
     |> Ecto.Changeset.put_change(:participant_id, participant.id)
     |> Repo.insert()
+    |> case do
+      {:ok, poll} ->
+        poll = Repo.preload(poll, participant: [user: :credential])
+        {:ok, poll}
+      {:error, _} = error -> error
+    end
   end
 
   def ensure_participant_exists(%Accounts.User{} = user) do
@@ -71,7 +77,7 @@ defmodule Tadpoll.Voting do
     |> handle_existing_participant()
   end
 
-  defp handle_existing_participant({:ok, participant}), do: participant
+  defp handle_existing_participant({:ok, participant}), do: Repo.preload(participant, user: :credential)
 
   defp handle_existing_participant({:error, changeset}) do
     Repo.get_by!(Participant, user_id: changeset.data.user_id)
@@ -134,7 +140,7 @@ defmodule Tadpoll.Voting do
 
   """
   def list_participants do
-    Repo.all(Participant)
+    Repo.all from p in Participant, preload: [user: :credential]
   end
 
   @doc """
@@ -155,24 +161,6 @@ defmodule Tadpoll.Voting do
     Participant
     |> Repo.get!(id)
     |> Repo.preload(user: :credential)
-  end
-
-  @doc """
-  Creates a participant.
-
-  ## Examples
-
-      iex> create_participant(%{field: value})
-      {:ok, %Participant{}}
-
-      iex> create_participant(%{field: bad_value})
-      {:error, %Ecto.Changeset{}}
-
-  """
-  def create_participant(attrs \\ %{}) do
-    %Participant{}
-    |> Participant.changeset(attrs)
-    |> Repo.insert()
   end
 
   @doc """

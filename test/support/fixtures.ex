@@ -54,4 +54,22 @@ defmodule Tadpoll.Fixtures do
     {:ok, poll} = Voting.create_poll(participant, attrs)
     poll
   end
+
+  @vote_attrs %{selection: 1}
+  
+  def fixture(:vote, attrs) do
+    attrs =
+      attrs
+      |> Enum.into(@vote_attrs)
+      |> Enum.into(%{})
+
+    {participant, attrs} = Map.pop(attrs, :participant)
+    participant = participant || fixture(:participant)
+
+    {poll, attrs} = Map.pop(attrs, :poll)
+    poll = poll || fixture(:poll, participant: participant)
+
+    {:ok, vote} = Voting.create_vote(participant, poll, attrs)
+    vote
+  end
 end
