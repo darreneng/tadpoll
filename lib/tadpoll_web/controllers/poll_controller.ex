@@ -2,9 +2,8 @@ defmodule TadpollWeb.PollController do
   use TadpollWeb, :controller
 
   alias Tadpoll.Voting
-  alias Tadpoll.Voting.Poll
+  alias Tadpoll.Voting.{Poll, Vote}
 
-  plug :require_existing_participant
   plug :authorize_poll when action in [:edit, :update, :delete]
 
   def index(conn, _params) do
@@ -30,7 +29,14 @@ defmodule TadpollWeb.PollController do
 
   def show(conn, %{"id" => id}) do
     poll = Voting.get_poll!(id)
-    render(conn, "show.html", poll: poll)
+    vote_changeset =
+      %Vote{
+        poll_id: poll.id,
+        participant_id: conn.assigns.current_participant.id
+      }
+      |> Voting.change_vote()
+      
+    render(conn, "show.html", poll: poll, vote_changeset: vote_changeset)
   end
 
   def edit(conn, %{"id" => id}) do
@@ -58,11 +64,6 @@ defmodule TadpollWeb.PollController do
     conn
     |> put_flash(:info, "Poll deleted successfully.")
     |> redirect(to: poll_path(conn, :index))
-  end
-
-  defp require_existing_participant(conn, _) do
-    participant = Voting.ensure_participant_exists(conn.assigns.current_user)
-    assign(conn, :current_participant, participant)
   end
 
   defp authorize_poll(conn, _) do

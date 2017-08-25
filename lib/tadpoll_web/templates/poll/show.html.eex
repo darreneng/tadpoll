@@ -13,5 +13,8 @@
   </li>
 </ul>
 
+<%= render TadpollWeb.VoteView, "form.html", changeset: @vote_changeset,
+    action: poll_vote_path(@conn, :create, @poll) %>
+
 <span><%= link "Edit", to: poll_path(@conn, :edit, @poll) %></span>
 <span><%= link "Back", to: poll_path(@conn, :index) %></span>

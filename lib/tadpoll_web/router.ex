@@ -24,20 +24,27 @@ defmodule TadpollWeb.Router do
   end
 
   scope "/", TadpollWeb do
-    pipe_through [:browser, :authenticate_user]
+    pipe_through [:browser, :authenticate_user, :require_existing_participant]
 
-    resources "/polls", PollController
+    resources "/polls", PollController do
+      resources "/votes", VoteController, only: [:create, :delete, :update]
+    end
   end
 
   defp authenticate_user(conn, _) do
-      case get_session(conn, :user_id) do
-        nil ->
-          conn
-          |> Phoenix.Controller.put_flash(:error, "Login required")
-          |> Phoenix.Controller.redirect(to: "/")
-          |> halt()
-        user_id ->
-          assign(conn, :current_user, Tadpoll.Accounts.get_user!(user_id))
-      end
+    case get_session(conn, :user_id) do
+      nil ->
+        conn
+        |> Phoenix.Controller.put_flash(:error, "Login required")
+        |> Phoenix.Controller.redirect(to: "/")
+        |> halt()
+      user_id ->
+        assign(conn, :current_user, Tadpoll.Accounts.get_user!(user_id))
     end
+  end
+
+  defp require_existing_participant(conn, _) do
+    participant = Tadpoll.Voting.ensure_participant_exists(conn.assigns.current_user)
+    assign(conn, :current_participant, participant)
+  end
 end

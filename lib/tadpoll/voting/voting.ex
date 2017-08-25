@@ -6,7 +6,7 @@ defmodule Tadpoll.Voting do
   import Ecto.Query, warn: false
   alias Tadpoll.Repo
 
-  alias Tadpoll.Voting.{Poll, Participant}
+  alias Tadpoll.Voting.{Poll, Participant, Vote}
   alias Tadpoll.Accounts
 
   @doc """
@@ -222,8 +222,6 @@ defmodule Tadpoll.Voting do
     Participant.changeset(participant, %{})
   end
 
-  alias Tadpoll.Voting.Vote
-
   @doc """
   Returns the list of votes.
 
@@ -265,9 +263,11 @@ defmodule Tadpoll.Voting do
       {:error, %Ecto.Changeset{}}
 
   """
-  def create_vote(attrs \\ %{}) do
+  def create_vote(%Participant{} = participant, %Poll{} = poll, attrs \\ %{}) do
     %Vote{}
     |> Vote.changeset(attrs)
+    |> Ecto.Changeset.put_change(:participant_id, participant.id)
+    |> Ecto.Changeset.put_change(:poll_id, poll.id)
     |> Repo.insert()
   end
 
