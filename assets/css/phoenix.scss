@@ -1,5 +1,9 @@
 /* Space out content a bit */
-body, form, ul, table {
+body {
+  padding-top: 5rem;
+}
+
+form, ul, table {
   margin-top: 20px;
   margin-bottom: 20px;
 }
@@ -33,11 +37,6 @@ body, form, ul, table {
 .jumbotron {
   text-align: center;
   border-bottom: 1px solid #e5e5e5;
-}
-
-/* Supporting marketing content */
-.marketing {
-  margin: 35px 0;
 }
 
 /* Responsive: Portrait tablets and up */
